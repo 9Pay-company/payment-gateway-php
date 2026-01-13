@@ -1,9 +1,13 @@
-# 9PAY PHP SDK
+<p align="center">
+  <img src="readme-logo.png" width="200" alt="9PAY Logo">
+</p>
+
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/ninepay-php/payment-gateway.svg?style=flat-square)](https://packagist.org/packages/ninepay-php/payment-gateway)
-[![Tests](https://github.com/ninepay-php/payment-gateway/actions/workflows/tests.yml/badge.svg)](https://github.com/ninepay-php/payment-gateway/actions)
+[![Tests](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/ninepay-php/payment-gateway/actions)
 [![Total Downloads](https://img.shields.io/packagist/dt/ninepay-php/payment-gateway.svg?style=flat-square)](https://packagist.org/packages/ninepay-php/payment-gateway)
 [![License](https://img.shields.io/packagist/l/ninepay-php/payment-gateway.svg?style=flat-square)](https://packagist.org/packages/ninepay-php/payment-gateway)
+[![Stars](https://img.shields.io/github/stars/badges/shields)](https://packagist.org/packages/ninepay-php/payment-gateway)
 
 Official PHP library for integrating 9PAY payment gateway. Supports creating payment requests, querying transactions, and verifying webhooks/callbacks.
 
