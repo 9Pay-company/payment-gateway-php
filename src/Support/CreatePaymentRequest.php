@@ -51,10 +51,6 @@ class CreatePaymentRequest
 
     public function __set(string $name, $value): void
     {
-        if ($name === 'extraData') {
-            return;
-        }
-
         $covertName = (new UnicodeString($name))->snake()->toString();
 
         $this->payload[$covertName] = $value;
