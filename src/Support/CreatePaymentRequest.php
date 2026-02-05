@@ -38,7 +38,7 @@ class CreatePaymentRequest
         ?string $backUrl = null,
         ?string $returnUrl = null
     ) {
-        if ($requestCode === '' || empty($amount) || $description === '') {
+        if (empty($requestCode) || empty($amount) || empty($description)) {
             throw new \InvalidArgumentException('Missing required fields: request_code, amount, description');
         }
 
