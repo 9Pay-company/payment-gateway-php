@@ -4,6 +4,8 @@ namespace NinePay;
 
 use Illuminate\Support\ServiceProvider;
 use NinePay\Config\NinePayConfig;
+use NinePay\Contracts\PaymentGatewayInterface;
+use NinePay\Gateways\NinePayGateway;
 
 class NinePayServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,8 @@ class NinePayServiceProvider extends ServiceProvider
         });
 
         $this->app->alias('ninepay', PaymentManager::class);
+
+        $this->app->bind(PaymentGatewayInterface::class, NinePayGateway::class);
     }
 
     /**

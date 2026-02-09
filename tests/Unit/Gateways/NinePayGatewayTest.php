@@ -5,7 +5,7 @@ namespace NinePay\Tests\Unit\Gateways;
 
 use NinePay\Config\NinePayConfig;
 use NinePay\Gateways\NinePayGateway;
-use NinePay\Support\CreatePaymentRequest;
+use NinePay\Request\CreatePaymentRequest;
 use NinePay\Utils\HttpClient;
 use PHPUnit\Framework\TestCase;
 

@@ -7,8 +7,9 @@ use JsonException;
 use NinePay\Config\NinePayConfig;
 use NinePay\Contracts\PaymentGatewayInterface;
 use NinePay\Contracts\ResponseInterface;
+use NinePay\Request\CreatePaymentRequest;
+use NinePay\Request\CreateRefundRequest;
 use NinePay\Support\BasicResponse;
-use NinePay\Support\CreatePaymentRequest;
 use NinePay\Utils\Environment;
 use NinePay\Utils\HttpClient;
 use NinePay\Utils\MessageBuilder;
@@ -100,6 +101,37 @@ class NinePayGateway implements PaymentGatewayInterface
         $res = $this->http->get($this->endpoint . '/v2/payments/' . $transactionId . '/inquire', $headers);
         $ok = $res['status'] >= 200 && $res['status'] < 300;
         return new BasicResponse($ok, is_array($res['body']) ? $res['body'] : ['raw' => $res['body']], (string)($res['body']['message'] ?? ''));
+    }
+
+    /**
+     * Create a refund request.
+     *
+     * @param CreateRefundRequest $request
+     * @return ResponseInterface
+     */
+    public function refund(CreateRefundRequest $request): ResponseInterface
+    {
+        $time = (string)time();
+        $payload = $request->toPayload();
+
+        $message = MessageBuilder::instance()
+            ->with($time, $this->endpoint . '/refunds/create', 'POST')
+            ->withParams($payload)
+            ->build();
+
+        $signature = Signature::sign($message, $this->secretKey);
+        $headers = [
+            'Date' => $time,
+            'Authorization' => 'Signature Algorithm=HS256,Credential=' . $this->clientId . ',SignedHeaders=,Signature=' . $signature,
+        ];
+
+        $res = $this->http->post($this->endpoint . '/refunds/create', $payload, $headers);
+
+        $ok = isset($res['status']) && $res['status'] >= 200 && $res['status'] < 300;
+
+        // Response body processing depends on implementation of HttpClient::post which returns array
+        $body = $res['body'] ?? [];
+        return new BasicResponse($ok, is_array($body) ? $body : ['raw' => $body], (string)($body['message'] ?? ''));
     }
 
     /**

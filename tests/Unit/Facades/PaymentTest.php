@@ -4,10 +4,9 @@ declare(strict_types=1);
 namespace NinePay\Tests\Unit\Facades;
 
 use NinePay\Config\NinePayConfig;
-use NinePay\Facades\Payment;
 use NinePay\Contracts\ResponseInterface;
-use NinePay\PaymentManager;
-use NinePay\Support\CreatePaymentRequest;
+use NinePay\Facades\Payment;
+use NinePay\Request\CreatePaymentRequest;
 use PHPUnit\Framework\TestCase;
 
 class PaymentTest extends TestCase

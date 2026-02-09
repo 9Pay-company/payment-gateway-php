@@ -7,7 +7,7 @@ use NinePay\Config\NinePayConfig;
 use NinePay\Contracts\ResponseInterface;
 use NinePay\Exceptions\PaymentException;
 use NinePay\PaymentManager;
-use NinePay\Support\CreatePaymentRequest;
+use NinePay\Request\CreatePaymentRequest;
 
 /**
  * Class Payment

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NinePay\Contracts;
 
-use NinePay\Support\CreatePaymentRequest;
+use NinePay\Request\CreatePaymentRequest;
 
 /**
  * Interface PaymentGatewayInterface

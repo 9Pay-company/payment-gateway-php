@@ -168,12 +168,12 @@ use NinePay;
 The SDK uses `CreatePaymentRequest` with a fluent interface for setting parameters.
 
 ```php
-use NinePay\Support\CreatePaymentRequest;
-use NinePay\Enums\PaymentMethod;
 use NinePay\Enums\Currency;
 use NinePay\Enums\Language;
+use NinePay\Enums\PaymentMethod;
 use NinePay\Enums\TransactionType;
 use NinePay\Exceptions\PaymentException;
+use NinePay\Request\CreatePaymentRequest;
 
 try {
     // 1. Create Request with required fields
