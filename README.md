@@ -40,6 +40,7 @@ This package allows you to:
     - [Create Payment](#create-payment)
     - [Query Transaction](#query-transaction)
     - [Verify Webhook / Callback](#verify-webhook--callback)
+    - [Refund Transaction](#refund-transaction)
 - [Enums & Constants](#enums--constants)
 - [License](#license)
 
@@ -253,6 +254,44 @@ if ($gateway->verify($result, $checksum)) {
     // Invalid signature
     http_response_code(400);
     echo 'Checksum Mismatch';
+}
+```
+
+---
+
+
+### Refund Transaction
+
+Create a refund request for a successful transaction.
+
+```php
+use NinePay\Request\CreateRefundRequest;
+use NinePay\Enums\Currency;
+
+// 1. Initialize Request
+$request = new CreateRefundRequest(
+    'REF_' . time(),       // Refund Request Code (Merchant side)
+    436271072913641,       // Original Transaction No (from 9Pay)
+    3100000,               // Refund Amount
+    'Refund reason'        // Description
+);
+
+// 2. Add banking info (Optional/Required depending on method)
+$request->withCurrency(Currency::VND)
+    ->withBank(
+        'BIDV',            // Bank Code
+        '1023020330000',   // Account Number
+        'NGUYEN VAN A'     // Account Name
+    );
+
+// 3. Send Refund Request
+$response = $gateway->refund($request);
+
+if ($response->isSuccess()) {
+    echo "Refund Success: " . $response->getMessage();
+    print_r($response->getData());
+} else {
+    echo "Refund Failed: " . $response->getMessage();
 }
 ```
 
