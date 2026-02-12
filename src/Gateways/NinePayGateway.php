@@ -8,9 +8,11 @@ use NinePay\Config\NinePayConfig;
 use NinePay\Contracts\PaymentGatewayInterface;
 use NinePay\Contracts\ResponseInterface;
 use NinePay\Request\AuthorizeCardPaymentRequest;
+use NinePay\Request\CapturePaymentRequest;
 use NinePay\Request\CreatePaymentRequest;
 use NinePay\Request\CreateRefundRequest;
 use NinePay\Request\PayerAuthRequest;
+use NinePay\Request\ReverseCardPaymentRequest;
 use NinePay\Support\BasicResponse;
 use NinePay\Utils\Environment;
 use NinePay\Utils\HttpClient;
@@ -189,6 +191,66 @@ class NinePayGateway implements PaymentGatewayInterface
         ];
 
         $res = $this->http->post($this->endpoint . '/v2/payments/authorize', $payload, $headers);
+
+        $ok = isset($res['status']) && $res['status'] >= 200 && $res['status'] < 300;
+
+        $body = $res['body'] ?? [];
+        return new BasicResponse($ok, is_array($body) ? $body : ['raw' => $body], (string)($body['message'] ?? ''));
+    }
+
+    /**
+     * Reverse authorization card payment.
+     *
+     * @param ReverseCardPaymentRequest $request
+     * @return ResponseInterface
+     */
+    public function reverseCardPayment(ReverseCardPaymentRequest $request): ResponseInterface
+    {
+        $time = (string)time();
+        $payload = $request->toPayload();
+
+        $message = MessageBuilder::instance()
+            ->with($time, $this->endpoint . '/v2/payments/reverse-auth', 'POST')
+            ->withParams(['json' => json_encode($payload)])
+            ->build();
+
+        $signature = Signature::sign($message, $this->secretKey);
+        $headers = [
+            'Date' => $time,
+            'Authorization' => 'Signature Algorithm=HS256,Credential=' . $this->clientId . ',SignedHeaders=,Signature=' . $signature,
+        ];
+
+        $res = $this->http->post($this->endpoint . '/v2/payments/reverse-auth', $payload, $headers);
+
+        $ok = isset($res['status']) && $res['status'] >= 200 && $res['status'] < 300;
+
+        $body = $res['body'] ?? [];
+        return new BasicResponse($ok, is_array($body) ? $body : ['raw' => $body], (string)($body['message'] ?? ''));
+    }
+
+    /**
+     * Capture authorized card payment.
+     *
+     * @param CapturePaymentRequest $request
+     * @return ResponseInterface
+     */
+    public function capture(CapturePaymentRequest $request): ResponseInterface
+    {
+        $time = (string)time();
+        $payload = $request->toPayload();
+
+        $message = MessageBuilder::instance()
+            ->with($time, $this->endpoint . '/v2/payments/capture', 'POST')
+            ->withParams(['json' => json_encode($payload)])
+            ->build();
+
+        $signature = Signature::sign($message, $this->secretKey);
+        $headers = [
+            'Date' => $time,
+            'Authorization' => 'Signature Algorithm=HS256,Credential=' . $this->clientId . ',SignedHeaders=,Signature=' . $signature,
+        ];
+
+        $res = $this->http->post($this->endpoint . '/v2/payments/capture', $payload, $headers);
 
         $ok = isset($res['status']) && $res['status'] >= 200 && $res['status'] < 300;
 

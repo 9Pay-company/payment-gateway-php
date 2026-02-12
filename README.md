@@ -305,7 +305,7 @@ $request = new AuthorizeCardPaymentRequest(
     'VND'
 );
 
-->withCard(
+$request->withCard(
     '1234567890123456', // Card Number
     'NGUYEN VAN A',     // Hold Name
     12,                 // Exp Month
@@ -321,6 +321,42 @@ if ($response->isSuccess()) {
     print_r($response->getData());
 } else {
     echo "Authorize Failed: " . $response->getMessage();
+}
+```
+
+---
+
+### Reverse Authorize (Credit Card)
+
+Reverse an authorized credit card payment.
+
+```php
+use NinePay\Request\ReverseCardPaymentRequest;
+
+// 1. Initialize Request
+$request = new ReverseCardPaymentRequest(
+    'REQ_' . time(),    // Request ID
+    123456789,          // Order Code
+    5000000,            // Amount
+    'VND'
+);
+
+$request->withCard(
+    '1234567890123456', // Card Number
+    'NGUYEN VAN A',     // Hold Name
+    12,                 // Exp Month
+    25,                 // Exp Year (2 digits)
+    '123'               // CVV
+);
+
+// 2. Send Reverse Request
+$response = $gateway->reverseCardPayment($request);
+
+if ($response->isSuccess()) {
+    echo "Reverse Success: " . $response->getMessage();
+    print_r($response->getData());
+} else {
+    echo "Reverse Failed: " . $response->getMessage();
 }
 ```
 
