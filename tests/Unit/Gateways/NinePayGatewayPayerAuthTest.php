@@ -77,4 +77,56 @@ class NinePayGatewayPayerAuthTest extends TestCase
         $this->assertFalse($response->isSuccess());
         $this->assertEquals('Invalid card', $response->getMessage());
     }
+
+    public function test_payer_auth_http_error()
+    {
+        $request = new PayerAuthRequest(
+            'req_error',
+            5000000,
+            'https://callback.url'
+        );
+
+        $this->http->expects($this->once())
+            ->method('post')
+            ->willReturn([
+                'status' => 500,
+                'body' => 'Internal Server Error'
+            ]);
+
+        $response = $this->gateway->payerAuth($request);
+        $this->assertFalse($response->isSuccess());
+    }
+
+    public function test_payer_auth_exception()
+    {
+        $request = new PayerAuthRequest(
+            'req_exception',
+            5000000,
+            'https://callback.url'
+        );
+
+        $this->http->method('post')->willThrowException(new \Exception('Connection timeout'));
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Connection timeout');
+
+        $this->gateway->payerAuth($request);
+    }
+
+    public function test_payer_auth_invalid_response()
+    {
+        $request = new PayerAuthRequest(
+            'req_invalid',
+            5000000,
+            'https://callback.url'
+        );
+
+        $this->http->method('post')->willReturn([
+            'status' => 200,
+            'body' => [] // Empty body
+        ]);
+
+        $response = $this->gateway->payerAuth($request);
+        $this->assertTrue($response->isSuccess());
+    }
 }

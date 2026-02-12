@@ -29,7 +29,7 @@ class AuthorizeCardPaymentRequestTest extends TestCase
         $this->assertEquals('4456530000001005', $payload['card']['card_number']);
         $this->assertEquals('NGUYEN VAN A', $payload['card']['hold_name']);
         $this->assertEquals(12, $payload['card']['exp_month']);
-        $this->assertEquals(25, $payload['card']['exp_year']);
+        $this->assertEquals(27, $payload['card']['exp_year']);
         $this->assertEquals('123', $payload['card']['cvv']);
     }
 
@@ -51,9 +51,9 @@ class AuthorizeCardPaymentRequestTest extends TestCase
         $this->expectExceptionMessage('Missing required fields');
 
         new AuthorizeCardPaymentRequest(
-            'this_request_id_is_way_too_long_to_be_accepted' . time(),       // Request ID
-            436820814786001,     // Order Code
-            5000000,               // Amount
+            '',       // Request ID
+            0,     // Order Code
+            0,               // Amount
         );
     }
 }

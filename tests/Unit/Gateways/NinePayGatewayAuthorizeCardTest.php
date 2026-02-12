@@ -27,14 +27,10 @@ class NinePayGatewayAuthorizeCardTest extends TestCase
     {
         $request = new AuthorizeCardPaymentRequest(
             'req_123',
-            'order_123',
-            5000000,
-            '1234567890123456',
-            'NGUYEN VAN A',
-            '12',
-            '25',
-            '123'
+            123456,
+            5000000
         );
+        $request->withCard('1234567890123456', 'NGUYEN VAN A', 12, 25, '123');
 
         $this->http->expects($this->once())
             ->method('post')
@@ -42,7 +38,7 @@ class NinePayGatewayAuthorizeCardTest extends TestCase
                 $this->stringContains('/v2/payments/authorize'),
                 $this->callback(function ($payload) {
                     return $payload['request_id'] === 'req_123' &&
-                           $payload['order_code'] === 'order_123' &&
+                           $payload['order_code'] === 123456 &&
                            $payload['amount'] == 5000000 &&
                            isset($payload['card']);
                 }),
@@ -70,7 +66,7 @@ class NinePayGatewayAuthorizeCardTest extends TestCase
     {
         $request = new AuthorizeCardPaymentRequest(
             'req_123',
-            'order_123',
+            123456,
             5000000,
             '1234567890123456',
             'NGUYEN VAN A',
@@ -89,5 +85,72 @@ class NinePayGatewayAuthorizeCardTest extends TestCase
         $response = $this->gateway->authorizeCardPayment($request);
         $this->assertFalse($response->isSuccess());
         $this->assertEquals('Invalid card details', $response->getMessage());
+    }
+
+    public function test_authorize_card_http_error()
+    {
+        $request = new AuthorizeCardPaymentRequest(
+            'req_error',
+            999999,
+            5000000,
+            '1234567890123456',
+            'NGUYEN VAN A',
+            '12',
+            '25',
+            '123'
+        );
+
+        $this->http->expects($this->once())
+            ->method('post')
+            ->willReturn([
+                'status' => 500,
+                'body' => 'Internal Server Error'
+            ]);
+
+        $response = $this->gateway->authorizeCardPayment($request);
+        $this->assertFalse($response->isSuccess());
+    }
+
+    public function test_authorize_card_exception()
+    {
+        $request = new AuthorizeCardPaymentRequest(
+            'req_exception',
+            888888,
+            5000000,
+            '1234567890123456',
+            'NGUYEN VAN A',
+            '12',
+            '25',
+            '123'
+        );
+
+        $this->http->method('post')->willThrowException(new \Exception('Network Error'));
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Network Error');
+
+        $this->gateway->authorizeCardPayment($request);
+    }
+
+    public function test_authorize_card_invalid_response()
+    {
+        $request = new AuthorizeCardPaymentRequest(
+            'req_invalid',
+            777777,
+            5000000,
+            '1234567890123456',
+            'NGUYEN VAN A',
+            '12',
+            '25',
+            '123'
+        );
+
+        $this->http->method('post')->willReturn([
+            'status' => 200,
+            'body' => [] // Empty body
+        ]);
+
+        $response = $this->gateway->authorizeCardPayment($request);
+        $this->assertTrue($response->isSuccess());
     }
 }

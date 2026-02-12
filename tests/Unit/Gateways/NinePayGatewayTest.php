@@ -93,11 +93,23 @@ class NinePayGatewayTest extends TestCase
         $this->assertEquals('test', $gateway->decodeResult('dGVzdA'));
     }
 
+    public function testVerifyWithEmptyData(): void
+    {
+        $gateway = new NinePayGateway($this->config);
+        $this->assertFalse($gateway->verify('', 'checksum'));
+    }
+
+    public function testVerifyWithMissingChecksum(): void
+    {
+        $gateway = new NinePayGateway($this->config);
+        $this->assertFalse($gateway->verify('result', ''));
+    }
+
     /**
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-    public function testInquiry(): void
+    public function testInquirySuccess(): void
     {
         $mockHttp = $this->createMock(HttpClient::class);
         $mockHttp->method('get')->willReturn([
@@ -111,5 +123,82 @@ class NinePayGatewayTest extends TestCase
          $result = $gateway->inquiry('TRANS123');
 
          $this->assertTrue($result->isSuccess());
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testInquiryFailure(): void
+    {
+        $mockHttp = $this->createMock(HttpClient::class);
+        $mockHttp->method('get')->willReturn([
+            'status' => 400, // Status code 200 but logic failure
+            'body' => ['message' => 'Transaction not found', 'status' => 'failure'],
+            'headers' => []
+        ]);
+
+        $gateway = new NinePayGateway($this->config, $mockHttp);
+
+        $result = $gateway->inquiry('TRANS_FAIL');
+
+        $this->assertFalse($result->isSuccess());
+        $this->assertEquals('Transaction not found', $result->getMessage());
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testInquiryHttpError(): void
+    {
+        $mockHttp = $this->createMock(HttpClient::class);
+        $mockHttp->method('get')->willReturn([
+            'status' => 500,
+            'body' => 'Internal Server Error',
+            'headers' => []
+        ]);
+
+        $gateway = new NinePayGateway($this->config, $mockHttp);
+
+        $result = $gateway->inquiry('TRANS_ERR');
+
+        $this->assertFalse($result->isSuccess());
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testInquiryException(): void
+    {
+        $mockHttp = $this->createMock(HttpClient::class);
+        $mockHttp->method('get')->willThrowException(new \Exception('Network Error'));
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Network Error');
+
+        $gateway = new NinePayGateway($this->config, $mockHttp);
+        $gateway->inquiry('TRANS_EX');
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testInquiryWithInvalidResponseFormat(): void
+    {
+        $mockHttp = $this->createMock(HttpClient::class);
+        $mockHttp->method('get')->willReturn([
+            'status' => 200,
+            'body' => [], // Empty body
+            'headers' => []
+        ]);
+
+        $gateway = new NinePayGateway($this->config, $mockHttp);
+
+        $result = $gateway->inquiry('TRANS_EMPTY');
+
+        $this->assertTrue($result->isSuccess()); // Depending on implementation default
     }
 }

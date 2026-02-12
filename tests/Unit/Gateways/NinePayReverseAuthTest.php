@@ -5,11 +5,11 @@ namespace NinePay\Tests\Unit\Gateways;
 
 use NinePay\Config\NinePayConfig;
 use NinePay\Gateways\NinePayGateway;
-use NinePay\Request\CapturePaymentRequest;
+use NinePay\Request\ReverseCardPaymentRequest;
 use NinePay\Utils\HttpClient;
 use PHPUnit\Framework\TestCase;
 
-class NinePayCaptureTest extends TestCase
+class NinePayReverseAuthTest extends TestCase
 {
     private NinePayConfig $config;
 
@@ -19,7 +19,7 @@ class NinePayCaptureTest extends TestCase
         $this->config = new NinePayConfig('MID123', 'SECRET', 'CHECKSUM', 'SANDBOX');
     }
 
-    public function testCaptureSuccess(): void
+    public function testReverseAuthSuccess(): void
     {
         $mockHttp = $this->createMock(HttpClient::class);
         $mockHttp->expects($this->once())
@@ -28,27 +28,25 @@ class NinePayCaptureTest extends TestCase
                 'status' => 200,
                 'body' => [
                     'status' => 200,
-                    'message' => 'Capture successful',
+                    'message' => 'Reverse successful',
                     'data' => [
-                        'transaction_id' => 'TRANS123',
-                        'order_code' => 123456,
-                        'amount' => 50000
+                        'transaction_id' => 'TRANS_REV_123',
                     ]
                 ]
             ]);
 
         $gateway = new NinePayGateway($this->config, $mockHttp);
 
-        $request = new CapturePaymentRequest('REQ_CAP_1', 123456, 50000, 'VND');
+        $request = new ReverseCardPaymentRequest('REQ_REV_1', 123456);
 
-        $response = $gateway->capture($request);
+        $response = $gateway->reverseCardPayment($request);
 
         $this->assertTrue($response->isSuccess());
-        $this->assertEquals('Capture successful', $response->getMessage());
-        $this->assertEquals(123456, $response->getData()['data']['order_code']);
+        $this->assertEquals('Reverse successful', $response->getMessage());
+        $this->assertEquals('TRANS_REV_123', $response->getData()['data']['transaction_id']);
     }
 
-    public function testCaptureFails(): void
+    public function testReverseAuthFailure(): void
     {
         $mockHttp = $this->createMock(HttpClient::class);
         $mockHttp->expects($this->once())
@@ -62,29 +60,15 @@ class NinePayCaptureTest extends TestCase
             ]);
 
         $gateway = new NinePayGateway($this->config, $mockHttp);
-        $request = new CapturePaymentRequest('REQ_CAP_FAIL', 654321, 50000);
+        $request = new ReverseCardPaymentRequest('REQ_REV_FAIL', 654321);
 
-        $response = $gateway->capture($request);
+        $response = $gateway->reverseCardPayment($request);
 
         $this->assertFalse($response->isSuccess());
         $this->assertEquals('Invalid transaction state', $response->getMessage());
     }
 
-    public function testInputValidation(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Missing required fields');
-        new CapturePaymentRequest('', 0, 0);
-    }
-    
-    public function testAmountValidation(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Amount must be positive');
-        new CapturePaymentRequest('REQ_INV', 123, -100);
-    }
-
-    public function testCaptureHttpError(): void
+    public function testReverseAuthHttpError(): void
     {
         $mockHttp = $this->createMock(HttpClient::class);
         $mockHttp->expects($this->once())
@@ -95,10 +79,31 @@ class NinePayCaptureTest extends TestCase
             ]);
 
         $gateway = new NinePayGateway($this->config, $mockHttp);
-        $request = new CapturePaymentRequest('REQ_CAP_ERR', 777777, 50000);
+        $request = new ReverseCardPaymentRequest('REQ_REV_ERR', 777777);
 
-        $response = $gateway->capture($request);
+        $response = $gateway->reverseCardPayment($request);
 
         $this->assertFalse($response->isSuccess());
+    }
+
+    public function testReverseAuthException(): void
+    {
+        $mockHttp = $this->createMock(HttpClient::class);
+        $mockHttp->method('post')->willThrowException(new \Exception('Connection timeout'));
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Connection timeout');
+
+        $gateway = new NinePayGateway($this->config, $mockHttp);
+        $request = new ReverseCardPaymentRequest('REQ_REV_EX', 888888);
+
+        $gateway->reverseCardPayment($request);
+    }
+
+    public function testInputValidation(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required fields');
+        new ReverseCardPaymentRequest('', 0);
     }
 }
