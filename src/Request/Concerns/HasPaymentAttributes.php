@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace NinePay\Support\Concerns;
+namespace NinePay\Request\Concerns;
 
+use InvalidArgumentException;
 use NinePay\Enums\Currency;
 use NinePay\Enums\Language;
 use NinePay\Enums\PaymentMethod;
 use NinePay\Enums\TransactionType;
-use InvalidArgumentException;
 
 /**
  * @property string|null method
